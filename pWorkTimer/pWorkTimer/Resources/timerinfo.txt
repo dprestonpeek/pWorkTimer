@@ -1,0 +1,6 @@
+timer=7789
+monday=25200
+tuesday=7789
+wednesday=0
+thursday=0
+friday=0

@@ -1,6 +1,8 @@
-timer=7789
+timer=11839
 monday=25200
-tuesday=7789
-wednesday=0
+tuesday=26479
+wednesday=11839
 thursday=0
 friday=0
+1158~1535~1633~
+10/5/2022 12:00:00 AM

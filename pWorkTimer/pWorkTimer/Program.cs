@@ -4,6 +4,7 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace pWorkTimer
 {
@@ -17,6 +18,7 @@ namespace pWorkTimer
         private static int myHours = 0;
         private static int timer = 0;
         private static int idleTime = 0;
+        private static int offTime = 0;
         private static Point currPoint = new Point();
         private static Point lastPoint = new Point();
         private static bool updateDisplay = true;
@@ -25,116 +27,152 @@ namespace pWorkTimer
         private static List<int> breaks = new List<int>();
 
         private static DateTime today;
-        private static int fileItems = 8;
+        private static int fileItems = 10;
         private static int[] weekdays = new int[5];
         private static string prevLine = "";
+        private static string weekHistory = "";
 
         private static string infofile = "../../../Resources/timerinfo.txt";
+        private static string logfile = "../../../Resources/logfile.txt";
         static void Main(string[] args)
         {
             string input = "";
-            Console.SetWindowSize(50, 8);
+            Console.SetWindowSize(50, 10);
             today = DateTime.Today;
             LoadInfoFile();
-            timerObj = new Timer(TimerCallback, null, 0, 1000);
-            do
+            try
             {
-                input = Console.ReadKey().KeyChar.ToString();
-                switch(input)
+                timerObj = new Timer(TimerCallback, null, 0, 1000);
+                do
                 {
-                    case "+":
-                        do
-                        {
-                            updateDisplay = false;
-                            Console.WriteLine("\n\nHow long have you worked today?");
-                        } while (!int.TryParse(Console.ReadLine(), out myHours));
-                        if (myHours < 8)
-                        {
-                            myHours *= 3600;    //turn seconds into hours
-                        }
-                        else
-                        {
-                            myHours *= 60;  //turn seconds into minutes
-                        }
-                        timer += myHours;
-                        SetWeekInfo();
-                        SaveInfoFile();
-                        updateDisplay = true;
-                        break;
-                    case "1":
-                    case "2":
-                    case "3":
-                    case "4":
-                    case "5":
-                        int day = int.Parse(input);
-                        string tab = "\t";
-                        if (day == 3)
-                            tab = "";
-                        prevLine = "Time Elapsed " + (DayOfWeek)int.Parse(input) + ": " + tab + GetTimeFromSeconds(weekdays[day - 1]) + "\n"
-                            + "Time Left " + (DayOfWeek)int.Parse(input) + ": \t" + GetTimeFromSeconds(hours - weekdays[day - 1]);
-                        break;
-                    case "w":
-                        int total = 0;
-                        for (int i = 0; i < 5; i++)
-                        {
-                            total += weekdays[i];
-                        }
-                        prevLine = "Week Time Elapsed: \t" + GetTimeFromSeconds(total) + "\nWeek Time Left: \t" + GetTimeFromSeconds((hours * 5) - total);
-                        break;
-                    case "b":
-                        string line = "";
-                        for (int i = 0; i < breaks.Count; i++)
-                        {
-                            line += i + ". \t" + GetTimeFromSeconds(breaks[i]) + "\n";
-                        }
-                        prevLine = line;
-                        break;
-                    case "c":
-                        prevLine = "";
-                        break;
-                }
-            } while (input != "x");
+                    input = Console.ReadKey().KeyChar.ToString();
+                    switch (input)
+                    {
+                        case "+":
+                            do
+                            {
+                                updateDisplay = false;
+                                Console.WriteLine("\n\nHow long have you worked today?");
+                            } while (!int.TryParse(Console.ReadLine(), out myHours));
+                            if (myHours < 8)
+                            {
+                                myHours *= 3600;    //turn seconds into hours
+                            }
+                            else
+                            {
+                                myHours *= 60;  //turn seconds into minutes
+                            }
+                            timer += myHours;
+                            SetWeekInfo();
+                            SaveInfoFile();
+                            updateDisplay = true;
+                            break;
+                        case "1":
+                        case "2":
+                        case "3":
+                        case "4":
+                        case "5":
+                            int day = int.Parse(input);
+                            string tab = "\t";
+                            if (day == 3)
+                                tab = "";
+                            prevLine = "Time Elapsed " + (DayOfWeek)int.Parse(input) + ": " + tab + GetTimeFromSeconds(weekdays[day - 1]) + "\n"
+                                + "Time Left " + (DayOfWeek)int.Parse(input) + ": \t" + GetTimeFromSeconds(hours - weekdays[day - 1]);
+                            break;
+                        case "w":
+                            int total = 0;
+                            total = GetWeekTime();
+                            prevLine = "Week Time Elapsed: \t" + GetTimeFromSeconds(total) + "\nWeek Time Left: \t" + GetTimeFromSeconds((hours * 5) - total - offTime);
+                            break;
+                        case "b":
+                            string line = "";
+                            for (int i = 0; i < breaks.Count; i++)
+                            {
+                                line += i + ". \t" + GetTimeFromSeconds(breaks[i]) + "\n";
+                            }
+                            prevLine = line;
+                            break;
+                        case "m":
+                            string[] split = weekHistory.Split('~');
+                            prevLine = "";
+                            for (int i = 0; i < split.Length; i++)
+                            {
+                                prevLine += i + ". \t" + GetTimeFromSeconds(int.Parse(split[i])) + "\n";
+                            }
+                            break;
+                        case "o":
+                            int offHours;
+                            do
+                            {
+                                updateDisplay = false;
+                                Console.WriteLine("\n\nHow many hours do you have off this week?");
+                            } while (!int.TryParse(Console.ReadLine(), out offHours));
+                            offTime = offHours * 3600;
+                            updateDisplay = true;
+                            break;
+                        case "t":
+                            Process.Start("notepad.exe", infofile);
+                            break;
+                        case "l":
+                            Process.Start("notepad.exe", logfile);
+                            break;
+                        case "c":
+                            prevLine = "";
+                            break;
+                    }
+                } while (input != "x");
+            }
+            catch(Exception e)
+            {
+                LogFile(e.Message);
+            }
         }
 
         private static void TimerCallback(Object o)
         {
-            currPoint = new Point();
-            GetCursorPos(ref currPoint);
-            if (currPoint == lastPoint)
+            try
             {
-                idleTime++;
-            }
-            else
-            {
-                if (saveBreak)
+                currPoint = new Point();
+                GetCursorPos(ref currPoint);
+                if (currPoint == lastPoint)
                 {
-                    breaks.Add(idleTime);
-                    saveBreak = false;
+                    idleTime++;
                 }
-                idleTime = 0;
-            }
-            lastPoint = currPoint;
-
-            if (idleTime < 60 * 15) // under 15 minutes
-            {
-                timer++;
-                if (updateDisplay)
+                else
                 {
-                    Console.Clear();
-                    Console.Write("Time Elapsed: \t\t");
-                    Console.WriteLine(GetTimeFromSeconds(timer));
-                    Console.Write("Time Left today: \t");
-                    Console.WriteLine(GetTimeFromSeconds(hours - timer));
-                    Console.WriteLine(prevLine);
+                    if (saveBreak)
+                    {
+                        breaks.Add(idleTime);
+                        saveBreak = false;
+                    }
+                    idleTime = 0;
+                }
+                lastPoint = currPoint;
 
-                    SetWeekInfo();
-                    SaveInfoFile();
-                    //Console.WriteLine("\"+\" to add time to Today");
+                if (idleTime < 60 * 15) // under 15 minutes
+                {
+                    timer++;
+                    if (updateDisplay)
+                    {
+                        Console.Clear();
+                        Console.Write("Time Elapsed: \t\t");
+                        Console.WriteLine(GetTimeFromSeconds(timer));
+                        Console.Write("Time Left today: \t");
+                        Console.WriteLine(GetTimeFromSeconds(hours - timer));
+                        Console.WriteLine(prevLine);
+
+                        SetWeekInfo();
+                        SaveInfoFile();
+                    }
+                }
+                else //over 15 minutes
+                {
+                    saveBreak = true;
                 }
             }
-            else //over 15 minutes
+            catch (Exception e)
             {
-                saveBreak = true;
+                LogFile(e.Message);
             }
         }
 
@@ -156,6 +194,7 @@ namespace pWorkTimer
 
         private static void LoadInfoFile()
         {
+            int retries = 3;
             string[] toRead = File.ReadAllLines(infofile);
             for (int i = 0; i < fileItems; i++)
             {
@@ -165,20 +204,26 @@ namespace pWorkTimer
                 if (i > 0 && i < 6)
                     weekdays[i - 1] = int.Parse(split[1]);
                 if (i == 6)
-                    SetBreakInfo(toRead[6].Split('~'));
+                    SetBreakInfo(toRead[i].Split('~'));
                 if (i == 7)
                 {
-                    if (today != DateTime.Parse(toRead[i]))
-                    {
-                        timer = 0;
-                        breaks.Clear();
-                    }
+                    CheckDayRestart(toRead[i]);
+                }
+                if (i == 8)
+                {
+                    weekHistory = toRead[i];
+                }
+                if (i == 9)
+                {
+                    offTime = int.Parse(toRead[i]);
                 }
             }
         }
 
         private static void SaveInfoFile()
         {
+            int retries = 3;
+
             string[] toWrite = new string[fileItems];
             toWrite[0] = "timer=" + timer;
             toWrite[1] = "monday=" + weekdays[0];
@@ -188,7 +233,19 @@ namespace pWorkTimer
             toWrite[5] = "friday=" + weekdays[4];
             toWrite[6] = GetBreakInfo();
             toWrite[7] = today.ToString();
-            File.WriteAllLines(infofile, toWrite);
+            toWrite[8] = weekHistory;
+            toWrite[9] = offTime.ToString();
+            for (int i = 0; i < retries; i++)
+            {
+                try
+                {
+                    File.WriteAllLines(infofile, toWrite);
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
         }
 
         private static void SetWeekInfo()
@@ -196,12 +253,15 @@ namespace pWorkTimer
             switch (DateTime.Today.DayOfWeek)
             {
                 case DayOfWeek.Monday:
-                    weekdays[0] = + timer;
+                    CheckWeekRestart();
+                    weekdays[0] = timer;
                     break;
                 case DayOfWeek.Tuesday:
+                    CheckWeekRestart();
                     weekdays[1] = timer;
                     break;
                 case DayOfWeek.Wednesday:
+                    CheckWeekRestart();
                     weekdays[2] = timer;
                     break;
                 case DayOfWeek.Thursday:
@@ -210,6 +270,41 @@ namespace pWorkTimer
                 case DayOfWeek.Friday:
                     weekdays[4] = timer;
                     break;
+            }
+        }
+
+        private static int GetWeekTime()
+        {
+            int total = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                total += weekdays[i];
+            }
+            return total;
+        }
+
+        private static void CheckWeekRestart()
+        {
+            if (weekdays[3] > 0 || weekdays[4] > 0)
+            {
+                weekHistory += "~" + GetWeekTime();
+                timer = 0;
+                offTime = 0;
+                weekdays[0] = 0;
+                weekdays[1] = 0;
+                weekdays[2] = 0;
+                weekdays[3] = 0;
+                weekdays[4] = 0;
+            }
+        }
+
+        private static void CheckDayRestart(string previousDate)
+        {
+            if (today != DateTime.Parse(previousDate))
+            {
+                timer = 0;
+                breaks.Clear();
+                today = DateTime.Today;
             }
         }
 
@@ -230,6 +325,29 @@ namespace pWorkTimer
                 if (line != "")
                     breaks.Add(int.Parse(line));
             }
+        }
+
+        private static void LogFile(string error)
+        {
+            // Create a writer and open the file:
+            StreamWriter log;
+
+            if (!File.Exists(logfile))
+            {
+                log = new StreamWriter(logfile);
+            }
+            else
+            {
+                log = File.AppendText(logfile);
+            }
+
+            // Write to the file:
+            log.WriteLine(DateTime.Now);
+            log.WriteLine(error);
+            log.WriteLine();
+
+            // Close the stream:
+            log.Close();
         }
     }
 }

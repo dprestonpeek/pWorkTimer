@@ -134,6 +134,7 @@ namespace pWorkTimer
             {
                 currPoint = new Point();
                 GetCursorPos(ref currPoint);
+
                 if (currPoint == lastPoint)
                 {
                     idleTime++;
@@ -144,6 +145,7 @@ namespace pWorkTimer
                     {
                         breaks.Add(idleTime);
                         saveBreak = false;
+                        timer -= 60 * 15; //subtract 15 minutes spent idle
                     }
                     idleTime = 0;
                 }

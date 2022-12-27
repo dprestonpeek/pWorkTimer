@@ -59,14 +59,5 @@ namespace pWorkTimer.Properties {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string timerinfo {
-            get {
-                return ResourceManager.GetString("timerinfo", resourceCulture);
-            }
-        }
     }
 }

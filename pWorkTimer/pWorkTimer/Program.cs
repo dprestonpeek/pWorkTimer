@@ -24,16 +24,20 @@ namespace pWorkTimer
         private static bool updateDisplay = true;
         private static bool saveBreak = false;
         private static int numBreaks = 0;
+        private static int day = 0;
         private static List<int> breaks = new List<int>();
 
         private static DateTime today;
-        private static int fileItems = 10;
+        private static DateTime startTime;
+        private static int fileItems = 11;
         private static int[] weekdays = new int[5];
         private static string prevLine = "";
         private static string weekHistory = "";
+        private static string STHistoryString = "";
+        private static string[] startTimeHistory = new string[5];
 
-        private static string infofile = "../../../Resources/timerinfo.txt";
-        private static string logfile = "../../../Resources/logfile.txt";
+        private static string infofile = "./timerinfo.txt";
+        private static string logfile = "./logfile.txt";
         static void Main(string[] args)
         {
             string input = "";
@@ -67,6 +71,25 @@ namespace pWorkTimer
                             SaveInfoFile();
                             updateDisplay = true;
                             break;
+                        case "-":
+                            do
+                            {
+                                updateDisplay = false;
+                                Console.WriteLine("\n\nHow much time would you like to remove?");
+                            } while (!int.TryParse(Console.ReadLine(), out myHours));
+                            if (myHours < 8)
+                            {
+                                myHours *= 3600;    //turn seconds into hours
+                            }
+                            else
+                            {
+                                myHours *= 60;  //turn seconds into minutes
+                            }
+                            timer -= myHours;
+                            SetWeekInfo();
+                            SaveInfoFile();
+                            updateDisplay = true;
+                            break;
                         case "1":
                         case "2":
                         case "3":
@@ -78,6 +101,13 @@ namespace pWorkTimer
                                 tab = "";
                             prevLine = "Time Elapsed " + (DayOfWeek)int.Parse(input) + ": " + tab + GetTimeFromSeconds(weekdays[day - 1]) + "\n"
                                 + "Time Left " + (DayOfWeek)int.Parse(input) + ": \t" + GetTimeFromSeconds(hours - weekdays[day - 1]);
+                            break;
+                        case "s":
+                            prevLine = "";
+                            for (int i = 0; i < startTimeHistory.Length; i++)
+                            {
+                                prevLine += i + ". \t" + startTimeHistory[i] + "\n";
+                            }
                             break;
                         case "w":
                             int total = 0;
@@ -93,11 +123,11 @@ namespace pWorkTimer
                             prevLine = line;
                             break;
                         case "m":
-                            string[] split = weekHistory.Split('~');
+                            string[] splitw = weekHistory.Split('~');
                             prevLine = "";
-                            for (int i = 0; i < split.Length; i++)
+                            for (int i = 0; i < splitw.Length; i++)
                             {
-                                prevLine += i + ". \t" + GetTimeFromSeconds(int.Parse(split[i])) + "\n";
+                                prevLine += i + ". \t" + GetTimeFromSeconds(int.Parse(splitw[i])) + "\n";
                             }
                             break;
                         case "o":
@@ -110,7 +140,7 @@ namespace pWorkTimer
                             offTime = offHours * 3600;
                             updateDisplay = true;
                             break;
-                        case "t":
+                        case "i":
                             Process.Start("notepad.exe", infofile);
                             break;
                         case "l":
@@ -194,8 +224,29 @@ namespace pWorkTimer
             return days + ":" + hours + ":" + minutes + ":" + seconds;
         }
 
+        private static void InitializeInfoFile()
+        {
+            string[] info = new string[fileItems];
+            info[0] = "timer=0";
+            info[1] = "monday=0";
+            info[2] = "tuesday=0";
+            info[3] = "wednesday=0";
+            info[4] = "thursday=0";
+            info[5] = "friday=0";
+            info[6] = "0";
+            info[7] = today.ToString();
+            info[8] = "0";
+            info[9] = "0";
+            info[10] = today.ToString().Split(' ')[1];
+            File.WriteAllLines(infofile, info);
+        }
+
         private static void LoadInfoFile()
         {
+            if (!File.Exists(infofile))
+            {
+                InitializeInfoFile();
+            }
             int retries = 3;
             string[] toRead = File.ReadAllLines(infofile);
             for (int i = 0; i < fileItems; i++)
@@ -219,6 +270,10 @@ namespace pWorkTimer
                 {
                     offTime = int.Parse(toRead[i]);
                 }
+                if (i == 10)
+                {
+                    CheckStartTime(toRead[i]);
+                }
             }
         }
 
@@ -237,6 +292,7 @@ namespace pWorkTimer
             toWrite[7] = today.ToString();
             toWrite[8] = weekHistory;
             toWrite[9] = offTime.ToString();
+            toWrite[10] = STHistoryString;
             for (int i = 0; i < retries; i++)
             {
                 try
@@ -257,20 +313,25 @@ namespace pWorkTimer
                 case DayOfWeek.Monday:
                     CheckWeekRestart();
                     weekdays[0] = timer;
+                    day = 0;
                     break;
                 case DayOfWeek.Tuesday:
                     CheckWeekRestart();
                     weekdays[1] = timer;
+                    day = 1;
                     break;
                 case DayOfWeek.Wednesday:
                     CheckWeekRestart();
                     weekdays[2] = timer;
+                    day = 2;
                     break;
                 case DayOfWeek.Thursday:
                     weekdays[3] = timer;
+                    day = 3;
                     break;
                 case DayOfWeek.Friday:
                     weekdays[4] = timer;
+                    day = 4;
                     break;
             }
         }
@@ -297,6 +358,7 @@ namespace pWorkTimer
                 weekdays[2] = 0;
                 weekdays[3] = 0;
                 weekdays[4] = 0;
+                startTimeHistory = new string[5];
             }
         }
 
@@ -307,6 +369,25 @@ namespace pWorkTimer
                 timer = 0;
                 breaks.Clear();
                 today = DateTime.Today;
+                startTime = DateTime.MinValue;
+            }
+        }
+
+        private static void CheckStartTime(string info)
+        {
+            if (today > startTime)
+            {
+                startTime = DateTime.Now.ToLocalTime();
+            }
+            startTimeHistory[day] = startTime.ToString().Split(' ')[1];
+            
+            for (int i = 0; i < 5; i++)
+            {
+                if (i > 0)
+                {
+                    STHistoryString += "~";
+                }
+                STHistoryString += startTimeHistory[i];
             }
         }
 

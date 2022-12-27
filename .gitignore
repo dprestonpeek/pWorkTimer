@@ -396,5 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-pWorkTimer/pWorkTimer/Resources/timerinfo.txt
-pWorkTimer/pWorkTimer/Resources/logfile.txt
+pWorkTimer/pWorkTimer/Resources/*

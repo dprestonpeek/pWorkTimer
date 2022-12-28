@@ -43,6 +43,7 @@ namespace pWorkTimer
             string input = "";
             Console.SetWindowSize(50, 10);
             today = DateTime.Today;
+            GetDay();
             LoadInfoFile();
             try
             {
@@ -127,7 +128,8 @@ namespace pWorkTimer
                             prevLine = "";
                             for (int i = 0; i < splitw.Length; i++)
                             {
-                                prevLine += i + ". \t" + GetTimeFromSeconds(int.Parse(splitw[i])) + "\n";
+                                float time = int.Parse(splitw[i]);
+                                prevLine += i + ". \t" + (time / (hours * 5)).ToString().Substring(2, 2) + "\t" + GetTimeFromSeconds((int)time) + "\n";
                             }
                             break;
                         case "o":
@@ -306,6 +308,28 @@ namespace pWorkTimer
             }
         }
 
+        private static void GetDay()
+        {
+            switch (DateTime.Today.DayOfWeek)
+            {
+                case DayOfWeek.Monday:
+                    day = 0;
+                    break;
+                case DayOfWeek.Tuesday:
+                    day = 1;
+                    break;
+                case DayOfWeek.Wednesday:
+                    day = 2;
+                    break;
+                case DayOfWeek.Thursday:
+                    day = 3;
+                    break;
+                case DayOfWeek.Friday:
+                    day = 4;
+                    break;
+            }
+        }
+
         private static void SetWeekInfo()
         {
             switch (DateTime.Today.DayOfWeek)
@@ -313,25 +337,20 @@ namespace pWorkTimer
                 case DayOfWeek.Monday:
                     CheckWeekRestart();
                     weekdays[0] = timer;
-                    day = 0;
                     break;
                 case DayOfWeek.Tuesday:
                     CheckWeekRestart();
                     weekdays[1] = timer;
-                    day = 1;
                     break;
                 case DayOfWeek.Wednesday:
                     CheckWeekRestart();
                     weekdays[2] = timer;
-                    day = 2;
                     break;
                 case DayOfWeek.Thursday:
                     weekdays[3] = timer;
-                    day = 3;
                     break;
                 case DayOfWeek.Friday:
                     weekdays[4] = timer;
-                    day = 4;
                     break;
             }
         }
@@ -350,7 +369,7 @@ namespace pWorkTimer
         {
             if (weekdays[3] > 0 || weekdays[4] > 0)
             {
-                weekHistory += "~" + GetWeekTime();
+                weekHistory += "~" + GetWeekTime() + offTime;
                 timer = 0;
                 offTime = 0;
                 weekdays[0] = 0;

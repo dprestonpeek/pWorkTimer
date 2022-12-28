@@ -375,12 +375,18 @@ namespace pWorkTimer
 
         private static void CheckStartTime(string info)
         {
-            if (today > startTime)
+            string sTime = info.Split('~')[day];
+            try
+            {
+                startTime = DateTime.Parse(sTime);
+            }
+            catch(Exception e)
             {
                 startTime = DateTime.Now.ToLocalTime();
             }
             startTimeHistory[day] = startTime.ToString().Split(' ')[1];
-            
+
+            STHistoryString = "";
             for (int i = 0; i < 5; i++)
             {
                 if (i > 0)

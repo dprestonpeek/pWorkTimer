@@ -151,6 +151,9 @@ namespace pWorkTimer
                         case "c":
                             prevLine = "";
                             break;
+                        case "u":
+                            CheckForUpdates();
+                            break;
                     }
                 } while (input != "x");
             }
@@ -456,6 +459,12 @@ namespace pWorkTimer
 
             // Close the stream:
             log.Close();
+        }
+
+        private static void CheckForUpdates()
+        {
+            Process.Start("pWorkTimerUpdateRepair.exe");
+            Environment.Exit(0);
         }
     }
 }

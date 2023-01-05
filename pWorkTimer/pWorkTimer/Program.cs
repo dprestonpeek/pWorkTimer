@@ -381,6 +381,7 @@ namespace pWorkTimer
                 weekdays[3] = 0;
                 weekdays[4] = 0;
                 startTimeHistory = new string[5];
+                STHistoryString = "";
             }
         }
 
@@ -391,13 +392,16 @@ namespace pWorkTimer
                 timer = 0;
                 breaks.Clear();
                 today = DateTime.Today;
-                startTime = DateTime.MinValue;
+                //startTime = DateTime.MinValue;
             }
         }
 
         private static void CheckStartTime(string info)
         {
             string sTime = info.Split('~')[day];
+            startTimeHistory = info.Split('~');
+            STHistoryString = info;
+
             try
             {
                 startTime = DateTime.Parse(sTime);

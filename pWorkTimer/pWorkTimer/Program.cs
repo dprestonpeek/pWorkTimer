@@ -123,6 +123,7 @@ namespace pWorkTimer
                             }
                             prevLine = line;
                             break;
+                        case "h":
                         case "m":
                             string[] splitw = weekHistory.Split('~');
                             prevLine = "";
@@ -372,7 +373,7 @@ namespace pWorkTimer
         {
             if (weekdays[3] > 0 || weekdays[4] > 0)
             {
-                weekHistory += "~" + GetWeekTime() + offTime;
+                weekHistory += "~" + (GetWeekTime() + offTime);
                 timer = 0;
                 offTime = 0;
                 weekdays[0] = 0;

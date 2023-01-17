@@ -399,13 +399,24 @@ namespace pWorkTimer
 
         private static void CheckStartTime(string info)
         {
+            if (info == "")
+            {
+                info = "~~~~";
+            }
             string sTime = info.Split('~')[day];
             startTimeHistory = info.Split('~');
             STHistoryString = info;
 
             try
             {
-                startTime = DateTime.Parse(sTime);
+                if (sTime != "")
+                {
+                    startTime = DateTime.Parse(sTime);
+                }
+                else
+                {
+                    startTime = DateTime.Now.ToLocalTime();
+                }
             }
             catch(Exception e)
             {

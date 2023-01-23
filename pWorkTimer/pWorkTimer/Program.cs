@@ -381,8 +381,6 @@ namespace pWorkTimer
                 weekdays[2] = 0;
                 weekdays[3] = 0;
                 weekdays[4] = 0;
-                startTimeHistory = new string[5];
-                STHistoryString = "";
             }
         }
 
@@ -399,10 +397,16 @@ namespace pWorkTimer
 
         private static void CheckStartTime(string info)
         {
-            if (info == "")
+            if ((DateTime.Today.DayOfWeek == DayOfWeek.Monday 
+                && startTimeHistory[4] != null)
+                || (DateTime.Today.DayOfWeek == DayOfWeek.Monday
+                && startTimeHistory[3] != null)
+                || (DateTime.Today.DayOfWeek == DayOfWeek.Tuesday
+                && startTimeHistory[0] == null))
             {
                 info = "~~~~";
             }
+
             string sTime = info.Split('~')[day];
             startTimeHistory = info.Split('~');
             STHistoryString = info;
@@ -422,7 +426,8 @@ namespace pWorkTimer
             {
                 startTime = DateTime.Now.ToLocalTime();
             }
-            startTimeHistory[day] = startTime.ToString().Split(' ')[1];
+            string[] split = startTime.ToString().Split(' ');
+            startTimeHistory[day] = split[1] + " " + split[2];
 
             STHistoryString = "";
             for (int i = 0; i < 5; i++)

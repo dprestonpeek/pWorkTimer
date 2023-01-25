@@ -54,41 +54,55 @@ namespace pWorkTimer
                     switch (input)
                     {
                         case "+":
+                            string ainput;
                             do
                             {
                                 updateDisplay = false;
                                 Console.WriteLine("\n\nHow long have you worked today?");
-                            } while (!int.TryParse(Console.ReadLine(), out myHours));
-                            if (myHours < 8)
+                                ainput = Console.ReadLine();
+                                if (ainput == "x")
+                                    break;
+                            } while (!int.TryParse(ainput, out myHours));
+                            if (ainput == "x")
                             {
-                                myHours *= 3600;    //turn seconds into hours
+                                if (myHours < 8)
+                                {
+                                    myHours *= 3600;    //turn seconds into hours
+                                }
+                                else
+                                {
+                                    myHours *= 60;  //turn seconds into minutes
+                                }
+                                timer += myHours;
+                                SetWeekInfo();
+                                SaveInfoFile();
                             }
-                            else
-                            {
-                                myHours *= 60;  //turn seconds into minutes
-                            }
-                            timer += myHours;
-                            SetWeekInfo();
-                            SaveInfoFile();
                             updateDisplay = true;
                             break;
                         case "-":
+                            string rinput;
                             do
                             {
                                 updateDisplay = false;
                                 Console.WriteLine("\n\nHow much time would you like to remove?");
-                            } while (!int.TryParse(Console.ReadLine(), out myHours));
-                            if (myHours < 8)
+                                rinput = Console.ReadLine();
+                                if (rinput == "x")
+                                    break;
+                            } while (!int.TryParse(rinput, out myHours));
+                            if (rinput != "x")
                             {
-                                myHours *= 3600;    //turn seconds into hours
+                                if (myHours < 8)
+                                {
+                                    myHours *= 3600;    //turn seconds into hours
+                                }
+                                else
+                                {
+                                    myHours *= 60;  //turn seconds into minutes
+                                }
+                                timer -= myHours;
+                                SetWeekInfo();
+                                SaveInfoFile();
                             }
-                            else
-                            {
-                                myHours *= 60;  //turn seconds into minutes
-                            }
-                            timer -= myHours;
-                            SetWeekInfo();
-                            SaveInfoFile();
                             updateDisplay = true;
                             break;
                         case "1":
@@ -109,6 +123,15 @@ namespace pWorkTimer
                             {
                                 prevLine += i + ". \t" + startTimeHistory[i] + "\n";
                             }
+                            break;
+                        case "t":
+                            prevLine = "";
+                            float breakTime = 0;
+                            foreach (int b in breaks)
+                                breakTime += b;
+                            breakTime /= 3600; //convert to hours
+                            DateTime endTime = startTime.AddHours(8 + breakTime - offTime);
+                            prevLine = endTime.ToShortTimeString();
                             break;
                         case "w":
                             int total = 0;
@@ -134,12 +157,16 @@ namespace pWorkTimer
                             }
                             break;
                         case "o":
-                            int offHours;
+                            int offHours = offTime / 3600;
+                            string oinput;
                             do
                             {
                                 updateDisplay = false;
                                 Console.WriteLine("\n\nHow many hours do you have off this week?");
-                            } while (!int.TryParse(Console.ReadLine(), out offHours));
+                                oinput = Console.ReadLine();
+                                if (oinput == "x")
+                                    break;
+                            } while (!int.TryParse(oinput, out offHours));
                             offTime = offHours * 3600;
                             updateDisplay = true;
                             break;

@@ -44,7 +44,14 @@ namespace pWorkTimer
             Console.SetWindowSize(50, 10);
             today = DateTime.Today;
             GetDay();
-            LoadInfoFile();
+            try
+            {
+                LoadInfoFile();
+            }
+            catch(Exception ex)
+            {
+                LogFile(ex.Message);
+            }
             try
             {
                 timerObj = new Timer(TimerCallback, null, 0, 1000);

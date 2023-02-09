@@ -8,7 +8,7 @@ namespace pWorkTimerUpdateRepair
 {
     class Program
     {
-        static string programName = "pFile";
+        static string programName = "pWorkTimer";
         static string dll = programName + ".dll";
         static string exe = programName + ".exe";
         static string execonfig = programName + ".exe.config";
